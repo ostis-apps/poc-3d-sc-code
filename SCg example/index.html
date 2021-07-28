@@ -1,0 +1,96 @@
+<head>
+  <style> body { margin: 0; } </style>
+<!--  <script src="https://unpkg.com/d3-force-3d@2.2.0/dist/d3-force-3d.min.js"></script>-->
+<!--  <script src="https://unpkg.com/d3-dsv@2.0.0/dist/d3-dsv.min.js"></script>-->
+<!--  <script src="https://unpkg.com/dat.gui@0.7.7/build/dat.gui.js"></script>-->
+<!--  <script src="https://unpkg.com/d3-octree@0.1.8/dist/d3-octree.min.js"></script>-->
+
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="../../dist/three.js"></script>
+
+  <script src="../../dist/3d-force-graph.js"></script>
+  <script src="https://unpkg.com/three-spritetext@1.6.1/dist/three-spritetext.min.js"></script>
+
+</head>
+
+<body>
+  <div id="3d-graph"></div>
+
+  <script>
+    const Graph = ForceGraph3D()
+    (document.getElementById('3d-graph'))
+            .jsonUrl('../datasets/scg.json')
+           // .nodeLabel('idtf')
+            .nodeVisibility(node => {return node.id != 4 && node.id != 6; })
+            .linkDirectionalArrowLength((link) => { if (link.arrow === "true") return 3.5; else return 0;})
+            .linkDirectionalArrowRelPos(1.1)
+            .linkCurvature(0)
+            .linkWidth((link) => { if (link.width) return link.width; else return 1;})
+            .linkColor(l => 'black')
+            .nodeThreeObject(({ idtf, img, role }) => {
+              // Create text node
+              const nodeSpriteText = new SpriteText(idtf);
+              nodeSpriteText.fontSize = 14;
+              nodeSpriteText.color = "black";
+              //nodeSpriteText.opacity = 0.75;
+              nodeSpriteText.textHeight = 4;
+              nodeSpriteText.position.y = -5;// Move to the bottom
+              nodeSpriteText.position.x = 10;
+              if(role === "node"){
+                const imgTexture = new THREE.TextureLoader().load(`./imgs/node_svg.svg`);
+                const material = new THREE.SpriteMaterial({ map: imgTexture });
+                const sprite = new THREE.Sprite(material);
+                sprite.scale.set(12, 12);
+                const group = new THREE.Group();
+                group.add(nodeSpriteText);
+                group.add(sprite);
+                return group;
+              }
+              if(role === "nrel"){
+                const imgTexture = new THREE.TextureLoader().load(`./imgs/nrel_svg.svg`);
+                const material = new THREE.SpriteMaterial({ map: imgTexture });
+                const sprite = new THREE.Sprite(material);
+                sprite.scale.set(12, 12);
+                const group = new THREE.Group();
+                group.add(nodeSpriteText);
+                group.add(sprite);
+                return group;
+              }
+            })
+             .linkResolution(4)
+             .linkThreeObject(({ img }) => {
+               let material = new THREE.MeshLambertMaterial({ color: 0xb2beb5,
+                 opacity: 1,
+                 map: null,
+                 lightMap: null,
+                 lightMapIntensity: 1.0,
+                 aoMap: null,
+                 aoMapIntensity: 1.0,
+                 emissive: 0x000000,
+                 emissiveIntensity: 1.0,
+                 emissiveMap: null,
+                 specularMap: null,
+                 alphaMap: null,
+                 envMap: null,
+                 combine: THREE.MultiplyOperation,
+                 reflectivity: 1,
+                 refractionRatio: 0.98,
+                 wireframe: false,
+                 wireframeLinewidth: 1,
+                 /*                                              wireframeLinecap: "round",
+                                                               wireframeLinejoin: "round",*/
+                 morphTargets: false,
+                 morphNormals: false
+               })
+               const sprite = new THREE.Mesh(new THREE.BufferGeometry(),material);
+               return sprite;
+             })
+            .backgroundColor("white")
+            //.d3Force("link", d3.forceLink().distance(d => d.distance))
+            .onNodeDragEnd(node => {
+              node.fx = node.x;
+              node.fy = node.y;
+              node.fz = node.z;
+            });
+  </script>
+</body>
